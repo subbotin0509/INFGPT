@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎓 Умный помощник по лекциям</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- MathJax для рендеринга формул -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-tertiary: #e9ecef;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --border-color: #dee2e6;
+            --accent-primary: #007bff;
+            --accent-success: #28a745;
+            --accent-warning: #ffc107;
+            --accent-warning-text: #856404;
+            --source-bg: #fff3cd;
+            --source-border: #ffc107;
+            --highlight-bg: #ffff00;
+            --highlight-text: #000000;
+            --shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --bg-tertiary: #3d3d3d;
+            --text-primary: #ffffff;
+            --text-secondary: #adb5bd;
+            --border-color: #495057;
+            --accent-primary: #0d6efd;
+            --accent-success: #198754;
+            --accent-warning: #ffc107;
+            --accent-warning-text: #ffc107;
+            --source-bg: #5d4200;
+            --source-border: #ffc107;
+            --highlight-bg: #ffeb3b;
+            --highlight-text: #000000;
+            --shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 0;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .app-container {
+            display: flex;
+            max-width: 1400px;
+            margin: 20px auto;
+            background: var(--bg-primary);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            height: calc(100vh - 40px);
+            transition: all 0.3s ease;
+        }
+
+        /* Левая панель */
+        .sidebar {
+            width: 30%;
+            background: var(--bg-secondary);
+            padding: 25px;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar h4 {
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent-primary);
+        }
+
+        .upload-section {
+            background: var(--bg-tertiary);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 1px dashed var(--accent-primary);
+        }
+
+        .upload-section h6 {
+            color: var(--accent-primary);
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: var(--accent-primary);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-primary);
+            filter: brightness(0.9);
+            transform: translateY(-2px);
+        }
+
+        .files-section h6 {
+            color: var(--accent-success);
+            margin: 20px 0 15px 0;
+            font-weight: 600;
+        }
+
+        .file-item {
+            display: block;
+            padding: 10px 15px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border-left: 4px solid var(--accent-success);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+            text-decoration: none;
+            font-size: 0.95em;
+        }
+
+        .file-item:hover {
+            background: var(--bg-tertiary);
+            transform: translateX(5px);
+        }
+
+        .file-item i {
+            margin-right: 8px;
+            color: var(--accent-success);
+        }
+
+        /* Правая панель */
+        .chat-section {
+            width: 70%;
+            display: flex;
+            flex-direction: column;
+            padding: 25px;
+            position: relative;
+        }
+
+        .chat-header {
+            margin-bottom: 20px;
+        }
+
+        .header-left h3 {
+            color: var(--text-primary);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+        }
+
+        .header-left h3 i {
+            color: var(--accent-primary);
+        }
+
+        .header-left p {
+            color: var(--text-secondary) !important;
+            margin: 0;
+        }
+
+        /* Переключатель темы */
+        .theme-switcher {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .theme-toggle {
+            width: 60px;
+            height: 30px;
+            background: var(--bg-tertiary);
+            border-radius: 15px;
+            border: 2px solid var(--border-color);
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle::before {
+            content: '';
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--accent-primary);
+            top: 1px;
+            left: 2px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            font-size: 12px;
+            color: white;
+        }
+
+        [data-theme="light"] .theme-toggle::before {
+            content: '\f185'; /* солнце */
+            left: 2px;
+        }
+
+        [data-theme="dark"] .theme-toggle::before {
+            content: '\f186'; /* луна */
+            left: 30px;
+        }
+
+        .theme-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .user-badge {
+            background: var(--accent-primary);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .teacher-badge {
+            background: var(--accent-success);
+        }
+
+        /* Контейнер чата */
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Сообщения */
+        .message {
+            margin-bottom: 16px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            animation: fadeInUp 0.3s ease forwards;
+        }
+
+        .user-message {
+            justify-content: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .bot-message {
+            justify-content: flex-start;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .user-avatar {
+            background: var(--accent-primary);
+        }
+
+        .bot-avatar {
+            background: var(--accent-success);
+        }
+
+        .message-content {
+            padding: 15px;
+            border-radius: 18px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            word-wrap: break-word;
+            max-width: 85%;
+            max-height: 400px;
+            overflow: auto;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .user-message .message-content {
+            background: var(--accent-primary);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        /* Стиль для источников */
+        .sources-section {
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 2px dashed var(--accent-warning);
+            font-size: 0.9em;
+        }
+
+        .sources-title {
+            font-weight: 600;
+            color: var(--accent-warning);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 1em;
+        }
+
+        .source-item {
+            margin-bottom: 12px;
+            padding: 12px;
+            background: var(--source-bg);
+            border-radius: 8px;
+            border-left: 4px solid var(--source-border);
+            color: var(--text-primary);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .source-content {
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+
+        .source-meta {
+            font-size: 0.85em;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding-top: 6px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .source-item mark,
+        .message-content mark {
+            background-color: var(--highlight-bg) !important;
+            color: var(--highlight-text) !important;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        /* Стили для математических формул */
+        .math-formula {
+            display: block;
+            text-align: center;
+            margin: 15px 0;
+            padding: 15px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            font-family: 'Times New Roman', serif;
+            overflow-x: auto;
+        }
+
+        .math-inline {
+            display: inline-block;
+            padding: 2px 6px;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            font-family: 'Times New Roman', serif;
+            margin: 0 2px;
+        }
+
+        /* Стиль MathJax для темной темы */
+        [data-theme="dark"] mjx-container {
+            color: var(--text-primary) !important;
+        }
+
+        [data-theme="dark"] mjx-math {
+            color: var(--text-primary) !important;
+        }
+
+        /* Стиль для интернет-ответов */
+        .internet-notice {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--accent-primary);
+            border-radius: 8px;
+            padding: 10px 15px;
+            margin-bottom: 12px;
+            font-weight: 600;
+            color: var(--accent-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Поле ввода */
+        .input-container {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .form-control-lg {
+            flex: 1;
+            border-radius: 50px !important;
+            padding: 16px 24px !important;
+            border: 2px solid var(--border-color) !important;
+            background: var(--bg-secondary) !important;
+            color: var(--text-primary) !important;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05) !important;
+            font-size: 1rem !important;
+            transition: all 0.3s ease;
+        }
+
+        .form-control-lg::placeholder {
+            color: var(--text-secondary) !important;
+        }
+
+        .form-control-lg:focus {
+            border-color: var(--accent-primary) !important;
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.25) !important;
+            transform: scale(1.01);
+            outline: none;
+        }
+
+        .btn-send {
+            background: var(--accent-success);
+            border: none;
+            padding: 16px 28px;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-width: 140px;
+            color: white;
+        }
+
+        .btn-send:hover {
+            background: var(--accent-success);
+            filter: brightness(0.9);
+            transform: translateY(-2px);
+            color: white;
+        }
+
+        /* Модальное окно */
+        .modal-content {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .modal-header {
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-footer {
+            border-top: 1px solid var(--border-color);
+        }
+
+        .form-control {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .form-control:focus {
+            background: var(--bg-secondary);
+            border-color: var(--accent-primary);
+            color: var(--text-primary);
+        }
+
+        .form-control::placeholder {
+            color: var(--text-secondary);
+        }
+
+        /* Адаптивность */
+        @media (max-width: 992px) {
+            .app-container {
+                flex-direction: column;
+                height: auto;
+            }
+            .sidebar, .chat-section {
+                width: 100%;
+            }
+            .sidebar {
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+            .theme-switcher {
+                position: static;
+                justify-content: flex-end;
+                margin-top: 10px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .btn-send {
+                padding: 14px 20px;
+                font-size: 0.95rem;
+                min-width: auto;
+            }
+            .form-control-lg {
+                font-size: 0.95rem !important;
+                padding: 14px 16px !important;
+            }
+            .theme-toggle {
+                width: 50px;
+                height: 26px;
+            }
+            [data-theme="dark"] .theme-toggle::before {
+                left: 22px;
+            }
+        }
+
+        /* Анимации */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .no-files {
+            color: var(--text-secondary);
+            font-style: italic;
+            padding: 15px;
+            text-align: center;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .teacher-login-section {
+            background: var(--bg-tertiary);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--accent-success);
+        }
+
+        .teacher-access-text {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        /* Стили для системы оценок */
+        .feedback-section {
+            background: var(--bg-tertiary) !important;
+            border: 1px solid var(--border-color);
+            margin-top: 15px;
+        }
+
+        .quality-badge {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .quality-excellent { background: #28a745; }
+        .quality-good { background: #20c997; }
+        .quality-fair { background: #ffc107; color: #000; }
+        .quality-poor { background: #dc3545; }
+        .quality-unknown { background: #6c757d; }
+
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        .feedback-buttons .btn {
+            transition: all 0.2s ease;
+        }
+
+        .feedback-buttons .btn:hover {
+            transform: scale(1.05);
+        }
+
+        .feedback-buttons .btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Стили для подтверждения оценки */
+        .feedback-confirmed {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .feedback-like-confirmed {
+            background-color: #28a745 !important;
+            color: white !important;
+            border-color: #28a745 !important;
+        }
+
+        .feedback-dislike-confirmed {
+            background-color: #dc3545 !important;
+            color: white !important;
+            border-color: #dc3545 !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Модальное окно входа преподавателя -->
+    <div class="modal fade" id="teacherLoginModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-chalkboard-teacher me-2"></i>Вход для преподавателей</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Пароль преподавателя:</label>
+                        <input type="password" class="form-control" id="teacherPassword" placeholder="Введите пароль" onkeypress="if(event.keyCode == 13) teacherLogin()">
+                    </div>
+                    <div class="alert alert-info small">
+                        <strong>Пароль:</strong> teacher123
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary" onclick="teacherLogin()">Войти</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <!-- Левая панель -->
+        <div class="sidebar">
+            <h4><i class="fas fa-book-open me-2"></i> Управление лекциями</h4>
+
+            <!-- Блок пользователя -->
+            <div class="user-section mb-3">
+                <div id="userInfo">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Статус:</span>
+                        <span id="userRole" class="user-badge">Студент</span>
+                    </div>
+                    <div id="teacherSection" style="display: none;">
+                        <div class="teacher-login-section">
+                            <div class="teacher-access-text">
+                                <i class="fas fa-unlock me-1"></i>Режим преподавателя
+                            </div>
+                            <div class="d-flex gap-2">
+                                <a href="/admin" class="btn btn-info btn-sm flex-fill">
+                                    <i class="fas fa-cog me-1"></i>Панель управления
+                                </a>
+                                <button class="btn btn-success btn-sm flex-fill" onclick="logout()">
+                                    <i class="fas fa-sign-out-alt me-1"></i>Выйти
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="studentSection">
+                        <button class="btn btn-outline-primary btn-sm w-100" data-bs-toggle="modal" data-bs-target="#teacherLoginModal">
+                            <i class="fas fa-chalkboard-teacher me-1"></i>Войти как преподаватель
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Форма загрузки (только для преподавателей) -->
+            <div class="upload-section" id="uploadSection" style="display: none;">
+                <h6><i class="fas fa-cloud-upload-alt me-2"></i> Загрузить новую лекцию</h6>
+                <form method="POST" action="/upload" enctype="multipart/form-data" onsubmit="setTimeout(loadUploadedFiles, 1000)">
+                    <input type="file" name="file" accept=".pdf,.docx" required class="form-control">
+                    <button type="submit" class="btn btn-primary w-100 mt-2">
+                        <i class="fas fa-upload me-2"></i>Загрузить
+                    </button>
+                </form>
+            </div>
+
+            <!-- Список файлов -->
+            <div class="files-section">
+                <h6><i class="fas fa-list-ul me-2"></i> Загруженные лекции</h6>
+                <div id="files-list">
+                    <div class="no-files">
+                        <i class="fas fa-info-circle me-2"></i>Нет загруженных файлов
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Правая панель -->
+        <div class="chat-section">
+            <div class="chat-header">
+                <div class="header-left">
+                    <h3><i class="fas fa-robot"></i> Умный помощник по лекциям</h3>
+                    <p class="text-muted">Задайте вопрос по загруженным материалам</p>
+                </div>
+            </div>
+
+            <!-- Переключатель темы в правом верхнем углу -->
+            <div class="theme-switcher">
+                <span class="theme-label">
+                    <i class="fas fa-sun"></i>
+                </span>
+                <div class="theme-toggle" onclick="toggleTheme()" title="Сменить тему"></div>
+                <span class="theme-label">
+                    <i class="fas fa-moon"></i>
+                </span>
+            </div>
+
+            <!-- Контейнер сообщений -->
+            <div class="chat-messages" id="chat">
+                <div class="message bot-message">
+                    <div class="avatar bot-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="message-content">
+                        <strong>Привет! 👋</strong><br>
+                        Я — ваш учебный помощник. Сначала загрузите лекцию (PDF или DOCX), а затем задавайте вопросы — я найду ответ в материалах и подсвечу источник.
+                        <div class="math-formula">E = mc^2</div>
+                        <p>Например, формула <span class="math-inline">a^2 + b^2 = c^2</span> будет отображаться красиво!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Блок ввода -->
+            <div class="input-container">
+                <input type="text" 
+                       id="question" 
+                       class="form-control form-control-lg" 
+                       placeholder="Например: Что такое backpropagation?"
+                       onkeypress="if(event.keyCode == 13) askQuestion()">
+                <button onclick="askQuestion()" class="btn btn-send">
+                    <i class="fas fa-paper-plane"></i> Отправить
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentTheme = localStorage.getItem('theme') || 'light';
+        let currentUser = null;
+
+        // Инициализация темы
+        function initTheme() {
+            document.documentElement.setAttribute('data-theme', currentTheme);
+        }
+
+        function toggleTheme() {
+            currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            localStorage.setItem('theme', currentTheme);
+            // Перерисовываем MathJax при смене темы
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        // Работа с пользователем
+        async function loadUserInfo() {
+            try {
+                const response = await fetch('/user_info');
+                const userInfo = await response.json();
+                currentUser = userInfo;
+                
+                if (userInfo.role === 'teacher') {
+                    document.getElementById('userRole').textContent = 'Преподаватель';
+                    document.getElementById('userRole').classList.add('teacher-badge');
+                    document.getElementById('teacherSection').style.display = 'block';
+                    document.getElementById('studentSection').style.display = 'none';
+                    document.getElementById('uploadSection').style.display = 'block';
+                } else {
+                    document.getElementById('userRole').textContent = 'Студент';
+                    document.getElementById('userRole').classList.remove('teacher-badge');
+                    document.getElementById('teacherSection').style.display = 'none';
+                    document.getElementById('studentSection').style.display = 'block';
+                    document.getElementById('uploadSection').style.display = 'none';
+                }
+            } catch (e) {
+                console.error('Ошибка загрузки информации о пользователе:', e);
+            }
+        }
+
+        async function teacherLogin() {
+            const password = document.getElementById('teacherPassword').value;
+            
+            if (!password) {
+                alert('Пожалуйста, введите пароль');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/teacher_login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Закрываем модальное окно
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('teacherLoginModal'));
+                    modal.hide();
+                    
+                    // Очищаем поле пароля
+                    document.getElementById('teacherPassword').value = '';
+                    
+                    // Обновляем интерфейс
+                    loadUserInfo();
+                } else {
+                    alert('Ошибка: ' + result.error);
+                }
+            } catch (e) {
+                alert('Ошибка при входе в систему');
+            }
+        }
+
+        async function logout() {
+            try {
+                const response = await fetch('/logout');
+                const result = await response.json();
+                
+                if (result.success) {
+                    location.reload();
+                }
+            } catch (e) {
+                console.error('Ошибка при выходе:', e);
+                location.reload();
+            }
+        }
+
+        // Получаем список файлов с сервера
+        async function loadUploadedFiles() {
+            try {
+                const response = await fetch('/get_files');
+                const files = await response.json();
+                const list = document.getElementById('files-list');
+                list.innerHTML = '';
+
+                if (!files || files.length === 0) {
+                    list.innerHTML = `
+                        <div class="no-files">
+                            <i class="fas fa-info-circle me-2"></i>Нет загруженных файлов
+                        </div>`;
+                } else {
+                    files.forEach(file => {
+                        const icon = file.toLowerCase().endsWith('.pdf') ? 'fa-file-pdf' : 'fa-file-word';
+                        const item = document.createElement('a');
+                        item.href = '#';
+                        item.className = 'file-item';
+                        item.innerHTML = `<i class="fas ${icon}"></i> ${file}`;
+                        list.appendChild(item);
+                    });
+                }
+            } catch (e) {
+                console.error("Ошибка загрузки списка файлов:", e);
+                document.getElementById('files-list').innerHTML = `
+                    <div class="text-danger small">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Ошибка загрузки
+                    </div>`;
+            }
+        }
+
+        // Функция для отправки фидбэка
+        async function sendFeedback(cacheKey, feedback, buttonElement) {
+            if (!cacheKey) {
+                console.error('No cache key provided for feedback');
+                return;
+            }
+
+            try {
+                // Визуальная обратная связь
+                const buttons = buttonElement.parentElement.querySelectorAll('button');
+                buttons.forEach(btn => {
+                    btn.classList.add('feedback-confirmed');
+                    btn.disabled = true;
+                });
+
+                if (feedback === 'like') {
+                    buttonElement.classList.add('feedback-like-confirmed');
+                } else {
+                    buttonElement.classList.add('feedback-dislike-confirmed');
+                }
+
+                const response = await fetch('/feedback', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        cache_key: cacheKey,
+                        feedback: feedback
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Показываем подтверждение
+                    buttonElement.innerHTML = feedback === 'like' ? 
+                        '<i class="fas fa-check"></i> Спасибо!' : 
+                        '<i class="fas fa-check"></i> Ясно';
+                    
+                    // Обновляем статистику на странице (если нужно)
+                    updateUserStats();
+                } else {
+                    alert('Ошибка: ' + result.error);
+                    // Возвращаем кнопки в исходное состояние при ошибке
+                    buttons.forEach(btn => {
+                        btn.classList.remove('feedback-confirmed');
+                        btn.disabled = false;
+                        btn.classList.remove('feedback-like-confirmed', 'feedback-dislike-confirmed');
+                    });
+                }
+
+            } catch (error) {
+                console.error('Error sending feedback:', error);
+                alert('Ошибка отправки оценки');
+                
+                // Возвращаем кнопки в исходное состояние при ошибке
+                const buttons = buttonElement.parentElement.querySelectorAll('button');
+                buttons.forEach(btn => {
+                    btn.classList.remove('feedback-confirmed');
+                    btn.disabled = false;
+                    btn.classList.remove('feedback-like-confirmed', 'feedback-dislike-confirmed');
+                });
+            }
+        }
+
+        // Функция для обновления статистики пользователя
+        function updateUserStats() {
+            // Можно добавить обновление счетчиков на странице, если нужно
+            console.log('Feedback submitted successfully');
+        }
+
+        // Функция для преобразования кода качества в текст
+        function getQualityText(quality) {
+            const qualityMap = {
+                'excellent': 'Отлично',
+                'good': 'Хорошо',
+                'fair': 'Удовлетворительно',
+                'poor': 'Плохо',
+                'unknown': 'Не оценено'
+            };
+            return qualityMap[quality] || 'Не оценено';
+        }
+
+        // Запрос на ответ
+        async function askQuestion() {
+            const input = document.getElementById('question');
+            const question = input.value.trim();
+            if (!question) {
+                alert("Пожалуйста, введите вопрос!");
+                return;
+            }
+
+            const chatDiv = document.getElementById('chat');
+
+            // Добавляем сообщение пользователя
+            const userMessage = document.createElement('div');
+            userMessage.className = 'message user-message';
+            userMessage.innerHTML = `
+                <div class="message-content">
+                    ${question}
+                </div>
+                <div class="avatar user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>`;
+            chatDiv.appendChild(userMessage);
+
+            input.value = '';
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+
+            // Показываем индикатор загрузки
+            const loadingMessage = document.createElement('div');
+            loadingMessage.className = 'message bot-message';
+            loadingMessage.innerHTML = `
+                <div class="avatar bot-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="message-content">
+                    <i class="fas fa-spinner fa-spin"></i> Ищу ответ...
+                </div>`;
+            chatDiv.appendChild(loadingMessage);
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+
+            try {
+                const response = await fetch('/ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question })
+                });
+
+                const data = await response.json();
+
+                // Удаляем индикатор загрузки
+                chatDiv.removeChild(loadingMessage);
+
+                if (data.error) {
+                    const botMessage = document.createElement('div');
+                    botMessage.className = 'message bot-message';
+                    botMessage.innerHTML = `
+                        <div class="avatar bot-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="message-content">
+                            <strong>Ошибка:</strong> ${data.error}
+                        </div>`;
+                    chatDiv.appendChild(botMessage);
+                } else {
+                    // Формируем ответ
+                    let fullAnswer = '';
+
+                    if (data.used_web) {
+                        fullAnswer = `
+                            <div class="internet-notice">
+                                <i class="fas fa-globe me-2"></i>
+                                Информация найдена в интернете
+                            </div>
+                            ${data.answer}`;
+                    } else {
+                        fullAnswer = data.answer;
+                        
+                        // Добавляем источники только если НЕ из интернета
+                        if (data.sources && data.sources.length > 0) {
+                            fullAnswer += '<div class="sources-section">';
+                            fullAnswer += '<div class="sources-title"><i class="fas fa-book me-2"></i>Найдено в материалах:</div>';
+                            data.sources.forEach(src => {
+                                fullAnswer += `
+                                    <div class="source-item">
+                                        <div class="source-content">${src.content}</div>
+                                        <div class="source-meta">
+                                            <i class="fas fa-file me-1"></i>
+                                            <span>Источник: ${src.source}</span>
+                                        </div>
+                                    </div>`;
+                            });
+                            fullAnswer += '</div>';
+                        }
+                    }
+
+                    // Создаем уникальный ID для блока фидбэка
+                    const feedbackId = 'feedback-' + Date.now();
+
+                    const botMessage = document.createElement('div');
+                    botMessage.className = 'message bot-message';
+                    botMessage.innerHTML = `
+                        <div class="avatar bot-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="message-content">
+                            ${fullAnswer}
+                            
+                            <!-- Блок с оценкой качества и кнопками лайков -->
+                            <div class="feedback-section mt-3 p-3 rounded" id="${feedbackId}" style="display: none;">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <small class="text-muted">Оценка качества: 
+                                            <span class="quality-badge quality-${data.quality_metrics?.overall_quality || 'unknown'}">
+                                                ${getQualityText(data.quality_metrics?.overall_quality)}
+                                            </span>
+                                        </small>
+                                    </div>
+                                    <div class="feedback-buttons">
+                                        <small class="text-muted me-2">Ответ полезен?</small>
+                                        <button class="btn btn-sm btn-outline-success me-1" onclick="sendFeedback('${data.cache_key}', 'like', this)">
+                                            <i class="fas fa-thumbs-up"></i> Да
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="sendFeedback('${data.cache_key}', 'dislike', this)">
+                                            <i class="fas fa-thumbs-down"></i> Нет
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+                    
+                    chatDiv.appendChild(botMessage);
+                    
+                    // Показываем блок с оценками через небольшую задержку
+                    setTimeout(() => {
+                        const feedbackSection = document.getElementById(feedbackId);
+                        if (feedbackSection) {
+                            feedbackSection.style.display = 'block';
+                        }
+                    }, 500);
+                    
+                    // Перерисовываем MathJax для новых формул
+                    if (window.MathJax) {
+                        MathJax.typesetPromise([botMessage]);
+                    }
+                }
+            } catch (e) {
+                // Удаляем индикатор загрузки в случае ошибки
+                if (loadingMessage.parentNode) {
+                    chatDiv.removeChild(loadingMessage);
+                }
+
+                const botMessage = document.createElement('div');
+                botMessage.className = 'message bot-message';
+                botMessage.innerHTML = `
+                    <div class="avatar bot-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="message-content">
+                        <strong>Ошибка:</strong> Не удалось связаться с сервером.
+                    </div>`;
+                chatDiv.appendChild(botMessage);
+            }
+
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+        }
+
+        // Инициализация
+        window.onload = () => {
+            initTheme();
+            loadUserInfo();
+            loadUploadedFiles();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 Аналитика системы</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --border-color: #dee2e6;
+            --accent-primary: #007bff;
+            --accent-success: #28a745;
+            --accent-danger: #dc3545;
+            --accent-warning: #ffc107;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --text-primary: #ffffff;
+            --text-secondary: #adb5bd;
+            --border-color: #495057;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .analytics-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--bg-primary);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .analytics-header {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .analytics-content {
+            padding: 20px;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--accent-primary);
+        }
+
+        .stat-card.success { border-left-color: var(--accent-success); }
+        .stat-card.warning { border-left-color: var(--accent-warning); }
+        .stat-card.danger { border-left-color: var(--accent-danger); }
+
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--accent-primary);
+        }
+
+        .stat-card.success .stat-number { color: var(--accent-success); }
+        .stat-card.warning .stat-number { color: var(--accent-warning); }
+        .stat-card.danger .stat-number { color: var(--accent-danger); }
+
+        .chart-container {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            height: 250px;
+        }
+
+        .quality-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .quality-excellent { background: #28a745; }
+        .quality-good { background: #20c997; }
+        .quality-fair { background: #ffc107; color: black; }
+        .quality-poor { background: #dc3545; }
+
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <div class="analytics-container">
+        <!-- Шапка -->
+        <div class="analytics-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4><i class="fas fa-chart-line me-2"></i>Аналитика системы</h4>
+                    <p class="text-muted mb-0">Основные метрики использования</p>
+                </div>
+                <div>
+                    <a href="/admin" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-arrow-left me-2"></i>Назад
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Основной контент -->
+        <div class="analytics-content">
+            <!-- Основная статистика -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalQuestions">0</div>
+                        <div class="text-muted">Всего вопросов</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card success">
+                        <div class="stat-number" id="successRate">0%</div>
+                        <div class="text-muted">Успешных ответов</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card warning">
+                        <div class="stat-number" id="satisfactionRate">0%</div>
+                        <div class="text-muted">Удовлетворенность</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-number" id="avgResponseTime">0с</div>
+                        <div class="text-muted">Среднее время</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Графики -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="chart-container">
+                        <h6>Качество ответов</h6>
+                        <canvas id="qualityChart"></canvas>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="chart-container">
+                        <h6>Оценки пользователей</h6>
+                        <canvas id="feedbackChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Последние вопросы -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="stat-card">
+                        <h6>Последние вопросы</h6>
+                        <div id="recentQuestions" class="mt-3">
+                            <div class="loading-spinner">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Загрузка...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let qualityChart, feedbackChart;
+
+        async function refreshAnalytics() {
+            try {
+                showLoadingStates();
+                
+                const response = await fetch('/admin/analytics_data');
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                updateDashboard(data);
+                updateCharts(data);
+                updateRecentQuestions(data.recent_questions);
+                
+            } catch (error) {
+                console.error('Error fetching analytics:', error);
+                showError('Ошибка загрузки аналитики');
+            }
+        }
+
+        function showLoadingStates() {
+            document.getElementById('recentQuestions').innerHTML = `
+                <div class="loading-spinner">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Загрузка...</span>
+                    </div>
+                </div>`;
+        }
+
+        function showError(message) {
+            document.getElementById('recentQuestions').innerHTML = `
+                <div class="alert alert-danger text-center">
+                    <i class="fas fa-exclamation-triangle me-2"></i>${message}
+                </div>`;
+        }
+
+        function updateDashboard(data) {
+            document.getElementById('totalQuestions').textContent = data.total_questions.toLocaleString();
+            document.getElementById('successRate').textContent = data.success_rate + '%';
+            document.getElementById('satisfactionRate').textContent = data.satisfaction_rate + '%';
+            document.getElementById('avgResponseTime').textContent = data.avg_response_time + 'с';
+        }
+
+        function updateCharts(data) {
+            const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-primary');
+            const bgColor = getComputedStyle(document.documentElement).getPropertyValue('--bg-primary');
+
+            // График качества ответов
+            if (qualityChart) qualityChart.destroy();
+            const qualityCtx = document.getElementById('qualityChart').getContext('2d');
+            qualityChart = new Chart(qualityCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Отличные', 'Хорошие', 'Удовлет.', 'Плохие'],
+                    datasets: [{
+                        data: data.quality_distribution,
+                        backgroundColor: ['#28a745', '#20c997', '#ffc107', '#dc3545']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: textColor }
+                        }
+                    }
+                }
+            });
+
+            // График оценок пользователей
+            if (feedbackChart) feedbackChart.destroy();
+            const feedbackCtx = document.getElementById('feedbackChart').getContext('2d');
+            feedbackChart = new Chart(feedbackCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Лайки', 'Дизлайки'],
+                    datasets: [{
+                        data: [data.user_likes, data.user_dislikes],
+                        backgroundColor: ['#28a745', '#dc3545']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: textColor }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateRecentQuestions(questions) {
+            const container = document.getElementById('recentQuestions');
+            
+            if (!questions || questions.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-muted py-3">
+                        <i class="fas fa-inbox fa-2x mb-2"></i>
+                        <p>Нет данных о вопросах</p>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = questions.map(q => `
+                <div class="border-bottom pb-2 mb-2">
+                    <div class="small">${q.question}</div>
+                    <div class="d-flex justify-content-between align-items-center mt-1">
+                        <span class="quality-badge quality-${q.quality}">${q.quality_text}</span>
+                        <small class="text-muted">${q.timestamp}</small>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Загружаем аналитику при открытии страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            refreshAnalytics();
+        });
+    </script>
+</body>
+</html>

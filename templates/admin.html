@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎓 Панель администратора</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-tertiary: #e9ecef;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --border-color: #dee2e6;
+            --accent-primary: #007bff;
+            --accent-success: #28a745;
+            --accent-danger: #dc3545;
+            --accent-warning: #ffc107;
+            --shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --bg-tertiary: #3d3d3d;
+            --text-primary: #ffffff;
+            --text-secondary: #adb5bd;
+            --border-color: #495057;
+            --accent-primary: #0d6efd;
+            --accent-success: #198754;
+            --accent-danger: #dc3545;
+            --accent-warning: #ffc107;
+            --shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-primary);
+        }
+
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--bg-primary);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .admin-header {
+            background: var(--bg-secondary);
+            padding: 25px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .admin-content {
+            padding: 25px;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid var(--accent-primary);
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .stat-card.success {
+            border-left-color: var(--accent-success);
+        }
+
+        .stat-card.warning {
+            border-left-color: var(--accent-warning);
+        }
+
+        .stat-card.danger {
+            border-left-color: var(--accent-danger);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--accent-primary);
+        }
+
+        .stat-card.success .stat-number {
+            color: var(--accent-success);
+        }
+
+        .stat-card.warning .stat-number {
+            color: var(--accent-warning);
+        }
+
+        .stat-card.danger .stat-number {
+            color: var(--accent-danger);
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            padding: 15px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-danger {
+            background: var(--accent-danger);
+            border: none;
+        }
+
+        .btn-warning {
+            background: var(--accent-warning);
+            border: none;
+            color: #000;
+        }
+
+        .admin-actions {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .nav-back {
+            margin-bottom: 20px;
+        }
+
+        .upload-section {
+            background: var(--bg-tertiary);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 2px dashed var(--accent-primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Шапка -->
+        <div class="admin-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1><i class="fas fa-tachometer-alt me-2"></i>Панель администратора</h1>
+                    <p class="text-muted mb-0">Управление системой помощника по лекциям</p>
+                </div>
+                <div class="d-flex gap-3 align-items-center">
+                    <a href="/" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left me-2"></i>Назад к чату
+                    </a>
+                    <span class="badge bg-success fs-6">Преподаватель</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Основной контент -->
+        <div class="admin-content">
+            <!-- Статистика -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ stats.total_files or 0 }}</div>
+                        <div class="text-muted">Загружено файлов</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card success">
+                        <div class="stat-number">{{ stats.total_cache_entries or 0 }}</div>
+                        <div class="text-muted">Кэшированных ответов</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card warning">
+                        <div class="stat-number">{{ stats.cache_size_mb or 0 }} MB</div>
+                        <div class="text-muted">Размер кэша</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ stats.vectorstore_size_mb or 0 }} MB</div>
+                        <div class="text-muted">База знаний</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Дисковое пространство -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="stat-card {% if stats.disk_usage_gb and stats.disk_usage_gb > 80 %}danger{% elif stats.disk_usage_gb and stats.disk_usage_gb > 60 %}warning{% endif %}">
+                        <h5><i class="fas fa-hdd me-2"></i>Дисковое пространство</h5>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <strong>Использовано:</strong> {{ stats.disk_usage_gb or 0 }} GB
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Свободно:</strong> {{ stats.disk_free_gb or 0 }} GB
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Всего:</strong> {{ stats.disk_total_gb or 0 }} GB
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Аптайм:</strong> {{ stats.system_uptime or 'Недоступно' }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Действия администратора -->
+            <!-- admin.html - ДОБАВЛЯЕМ В admin-actions -->
+            <div class="admin-actions">
+                <button class="btn btn-warning" onclick="clearCache()">
+                    <i class="fas fa-broom me-2"></i>Очистить кэш
+                </button>
+                <button class="btn btn-info" onclick="rebuildVectorstore()">
+                    <i class="fas fa-database me-2"></i>Перестроить базу знаний
+                </button>
+                <!-- НОВАЯ КНОПКА -->
+                <a href="/admin/analytics" class="btn btn-success">
+                    <i class="fas fa-chart-line me-2"></i>Аналитика
+                </a>
+            </div>
+
+            <!-- Загрузка файлов -->
+            <div class="upload-section">
+                <h4><i class="fas fa-cloud-upload-alt me-2"></i>Загрузить новую лекцию</h4>
+                <form method="POST" action="/upload" enctype="multipart/form-data">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <input type="file" name="file" accept=".pdf,.docx" required class="form-control">
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-upload me-2"></i>Загрузить
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Управление файлами -->
+            <div class="files-section">
+                <h4><i class="fas fa-files me-2"></i>Управление документами</h4>
+                <p class="text-muted">Загруженные лекции и материалы</p>
+                
+                {% if files %}
+                    <div class="file-list">
+                        {% for file in files %}
+                            <div class="file-item">
+                                <div class="file-info">
+                                    <div class="fw-bold">
+                                        <i class="fas fa-file-{% if file.name.endswith('.pdf') %}pdf{% else %}word{% endif %} me-2"></i>
+                                        {{ file.name }}
+                                    </div>
+                                    <small class="text-muted">
+                                        Размер: {{ file.size_mb }} MB • Загружен: {{ file.upload_date }}
+                                    </small>
+                                </div>
+                                <div class="file-actions">
+                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteFile('{{ file.name }}')">
+                                        <i class="fas fa-trash me-1"></i>Удалить
+                                    </button>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Нет загруженных файлов</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Удаление файла
+        async function deleteFile(filename) {
+            if (!confirm(`Вы уверены, что хотите удалить файл "${filename}"?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/admin/delete_file', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ filename: filename })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(result.message);
+                    location.reload();
+                } else {
+                    alert('Ошибка: ' + result.error);
+                }
+            } catch (error) {
+                alert('Ошибка при удалении файла: ' + error.message);
+            }
+        }
+
+        // Очистка кэша
+        async function clearCache() {
+            if (!confirm('Очистить весь кэш ответов? Это не удалит загруженные файлы.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/admin/clear_cache', {
+                    method: 'POST'
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(result.message);
+                    location.reload();
+                } else {
+                    alert('Ошибка: ' + result.error);
+                }
+            } catch (error) {
+                alert('Ошибка при очистке кэша: ' + error.message);
+            }
+        }
+
+        // Перестроение векторной базы
+        async function rebuildVectorstore() {
+            if (!confirm('Перестроить векторную базу знаний? Это может занять некоторое время.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/admin/rebuild_vectorstore', {
+                    method: 'POST'
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(result.message);
+                } else {
+                    alert('Ошибка: ' + result.error);
+                }
+            } catch (error) {
+                alert('Ошибка при перестроении базы: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
