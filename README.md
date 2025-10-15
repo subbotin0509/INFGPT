@@ -58,44 +58,13 @@ graph LR
 
 ```mermaid
 graph TB
-    subgraph "Frontend Layer"
-        A[🎨 Веб-интерфейс<br/>Bootstrap + MathJax]
-        B[📱 Адаптивный дизайн]
-    end
-    
-    subgraph "Backend Layer"
-        C[🚀 Flask Application]
-        D[🔐 Аутентификация]
-        E[📊 API Routes]
-    end
-    
-    subgraph "AI Processing Layer"
-        F[🧠 LangChain Orchestrator]
-        G[🤖 Ollama LLM<br/>qwen2:0.5b]
-        H[🔍 DuckDuckGo Search]
-    end
-    
-    subgraph "Data Layer"
-        I[🗄️ ChromaDB<br/>Векторная база]
-        J[💾 SQLite<br/>Мониторинг]
-        K[⚡ Кэш ответов]
-    end
-    
-    subgraph "Document Processing"
-        L[📄 PDF Parser<br/>PyPDF2]
-        M[📝 DOCX Parser<br/>python-docx]
-        N[✂️ Text Splitter]
-    end
-    
-    A --> C
-    B --> C
-    C --> F
-    F --> G
-    F --> H
-    F --> I
-    I --> L
-    I --> M
-    I --> N
-    C --> J
-    C --> K
-    F --> K
+    A[Веб-интерфейс] --> B[Flask Backend]
+    B --> C[Векторная база ChromaDB]
+    B --> D[Языковая модель Ollama]
+    B --> E[Поиск DuckDuckGo]
+    C --> F[Обработка PDF/DOCX]
+    D --> G[Генерация ответов]
+    E --> G
+    G --> H[Оценка качества]
+    H --> I[Кэширование]
+    I --> A
