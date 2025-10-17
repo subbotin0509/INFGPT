@@ -32,7 +32,7 @@
 
 | Главный интерфейс | Панель администратора | Аналитика |
 |:---:|:---:|:---:|
-| [<img src="screenshots/main.png" width="300" alt="Главный интерфейс">](screenshots/main.png) | [<img src="screenshots/admin.png" width="300" alt="Панель администратора">](screenshots/admin.png) | [<img src="screenshots/analytics.png" width="300" alt="Аналитика">](screenshots/analytics.png) |
+| [<img src="screenshots/main.png" width="600" alt="Главный интерфейс">](screenshots/main.png) | [<img src="screenshots/admin.png" width="600" alt="Панель администратора">](screenshots/admin.png) | [<img src="screenshots/analytics.png" width="600" alt="Аналитика">](screenshots/analytics.png) |
 | **Главный интерфейс** | **Панель администратора** | **Аналитика** |
 
 *Нажмите на изображение для просмотра в полном размере*
