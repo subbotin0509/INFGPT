@@ -1,9 +1,10 @@
 Flask==2.3.3
-langchain==0.3.7
-langchain-community==0.3.7
-langchain-core==0.3.45          # ← ОБНОВЛЕНО
-langchain-text-splitters==0.3.7
+langchain==0.3.27
+langchain-community==0.3.27
+langchain-core==0.3.80
+langchain-text-splitters==0.3.9
 langchain-huggingface==0.1.2
+langchain-ollama==0.2.3
 chromadb==0.5.23
 sentence-transformers==2.7.0
 python-docx==1.1.0
