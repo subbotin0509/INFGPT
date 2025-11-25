@@ -3,14 +3,24 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 from langchain_ollama import OllamaLLM
-from langchain_community.tools import DuckDuckGoSearchRun
 from langchain_core.documents import Document
 import re
 import logging
+from duckduckgo_search import DDGS
+
+def duckduckgo_search(query: str, max_results: int = 3) -> str:
+    try:
+        with DDGS() as ddgs:
+            results = ddgs.text(query, max_results=max_results)
+            return "\n".join([
+                f"{r.get('title', 'Без названия')}: {r.get('href', '')}"
+                for r in results
+            ])
+    except Exception as e:
+        return f"Ошибка поиска: {e}"
 
 # Инициализация LLM и поиска
 llm = OllamaLLM(model="qwen2:0.5b", temperature=0.2)
-search = DuckDuckGoSearchRun()
 
 PROMPT_TEMPLATE = """
 Ты — помощник студентов. Отвечай ТОЛЬКО на основе предоставленного контекста.
@@ -112,13 +122,13 @@ def hybrid_answer(question, vectorstore):
 def get_internet_answer(question):
     """Получает ответ из интернета"""
     try:
-        web_results = search.run(question)
+        web_results = duckduckgo_search(question)
         # Очищаем результат от китайских символов
         cleaned_web_results = clean_text(web_results)
         
         # Если после очистки слишком мало текста, пробуем еще раз
         if len(cleaned_web_results) < 30:
-            web_results = search.run(question + " на русском")
+            web_results = duckduckgo_search(question + " на русском")
             cleaned_web_results = clean_text(web_results)
         
         # Специальный промпт для интернет-ответов
@@ -304,4 +314,5 @@ def update_answer_quality_with_feedback(question, user_feedback, previous_metric
         
     except Exception as e:
         logging.error(f"Error updating quality with feedback: {e}")
+
         return previous_metrics
